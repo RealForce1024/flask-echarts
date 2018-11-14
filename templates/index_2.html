@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>试验</title>
+    <script src="{{ url_for('static', filename='echarts.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.1.1.js') }}"></script>
+    <script type="text/javascript">
+        var $SCRIPT_ROOT = {{ request.script_root| tojson | safe}};
+        function myfun() {
+            $.ajax({
+                type: "POST",
+                url: $SCRIPT_ROOT,
+                dataType: "json",
+                data: {
+                    "luhao": $("input[name=luhao]").val(),
+
+                },
+                error: function (XMLResponse) {
+                    alert(XMLResponse.responseText)
+                },
+                success: function (data) {
+                    $("#name").text(data.name);
+                    $("#name1").text(data.name1);
+
+
+                }
+            });
+            return false;
+        }
+    </script>
+</head>
+
+<body>
+    <form action="" method="post" onSubmit="return myfun()">
+        <input name="luhao" type="text" />
+        <input type="submit" />
+    </form>
+    <p>投料量: <span id="name"></span></p>
+    <p>炉数: <span id="name1"></span></p>
+    <div id="main" style="width: 800px;height:500px;margin: 20auto;"></div>
+    <script type="text/javascript">
+
+        var myChart = echarts.init(document.getElementById('main'));
+        myChart.setOption({
+            title: {
+                text: '一二厂投料量'
+            },
+            tooltip: {},
+            legend: {
+                data: ['投料量']
+            },
+            xAxis: {
+                data: []
+            },
+            yAxis: {},
+            series: [{
+                name: '投料量',
+                type: 'bar',
+                data: []
+            }]
+        });
+        var names = [];
+        var nums = [];
+
+        $.ajax({
+            type: "post",
+            async: true,
+            url: "/",
+            data: {},
+            dataType: "json",
+            success: function (result) {
+
+                if (result) {
+                    for (var i = 0; i < result.length; i++) {
+                        names.push(result[i].name);
+                    }
+                    for (var i = 0; i < result.length; i++) {
+                        nums.push(result[i].name1);
+                    }
+                    myChart.hideLoading();
+                    myChart.setOption({
+                        xAxis: {
+                            data: names
+                        },
+                        series: [{
+
+                            name: '投料量',
+                            data: nums
+                        }]
+                    });
+
+                }
+
+            },
+            error: function (errorMsg) {
+
+                alert("图表请求数据失败!");
+                myChart.hideLoading();
+            }
+        })
+
+    </script>
+</body>
+
+</html>
